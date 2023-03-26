@@ -11,14 +11,16 @@ scene.background = new THREE.Color(0xa8def0);
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(
-  45,
+  75,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
 );
-camera.position.y = 10;
-camera.position.z = 10;
-camera.position.x = 33;
+
+camera.position.x = 0;
+camera.position.y = 0;
+camera.position.z = 0;
+camera.lookAt(0, 0, 0);
 
 // RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -62,7 +64,7 @@ document.body.appendChild(renderer.domElement);
 
 // RESIZE HANDLER
 function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  // camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
@@ -89,8 +91,36 @@ loader.load("./glb/defender.glb", (gltf: GLTF) => {
 
   // change laod with GUI
 
-  loader.load("./glb/isometric_game_level_low_poly.glb", (gltf: GLTF) => {
-    gltf.scene.scale.set(0.7, 0.7, 0.7);
+  let map = 2;
+
+  const maps = [
+    {
+      x: 0,
+      y: 0,
+      z: 0,
+      scale: 0.7,
+    },
+    {
+      x: 0,
+      y: 0,
+      z: 1,
+      scale: 0.5,
+    },
+    {
+      x: -50,
+      y: -1,
+      z: 30,
+      scale: 0.5,
+    },
+  ];
+
+  loader.load(`./glb/map${map}.glb`, (gltf: GLTF) => {
+    gltf.scene.scale.set(maps[map].scale, maps[map].scale, maps[map].scale);
+    // center model
+    gltf.scene.position.x = maps[map].x;
+    gltf.scene.position.y = maps[map].y;
+    gltf.scene.position.z = maps[map].z;
+
     scene.add(gltf.scene);
   });
 
@@ -103,9 +133,15 @@ loader.load("./glb/defender.glb", (gltf: GLTF) => {
   let navmesh;
   let groupID;
   let navpath;
-  loader.load("./glb/navMesh.glb", (gltf: GLTF) => {
+  loader.load(`./glb/navMesh${map}.glb`, (gltf: GLTF) => {
+    gltf.scene.scale.set(maps[map].scale, maps[map].scale, maps[map].scale);
+    // center model
+    gltf.scene.position.x = maps[map].x;
+    gltf.scene.position.y = maps[map].y;
+    gltf.scene.position.z = maps[map].z;
+
     // scene.add(gltf.scene);
-    gltf.scene.scale.set(0.7, 0.7, 0.7);
+
     gltf.scene.traverse((node) => {
       if (
         !navmesh &&
@@ -163,7 +199,6 @@ loader.load("./glb/defender.glb", (gltf: GLTF) => {
       agentGroup.position.add(distance.multiplyScalar(delta * SPEED));
       // Rotate player to face target
       agentGroup.lookAt(targetPosition);
-
     } else {
       // Remove node from the path we calculated
       navpath.shift();
